@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Proofreader.App/Proofreader.App.csproj" />
+    <Project Path="src/Proofreader.Application/Proofreader.Application.csproj" />
+    <Project Path="src/Proofreader.Core/Proofreader.Core.csproj" />
+    <Project Path="src/Proofreader.Infrastructure/Proofreader.Infrastructure.csproj" />
+    <Project Path="src/Proofreader.Language/Proofreader.Language.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Proofreader.Tests/Proofreader.Tests.csproj" />
+  </Folder>
+</Solution>
