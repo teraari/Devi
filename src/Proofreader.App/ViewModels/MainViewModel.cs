@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,24 +12,36 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly ISpellchecker _spellchecker;
 
-    // Текст, который вводит пользователь
     [ObservableProperty]
     private string _inputText = "Вставьте или напишите ваш текст здесь для проверки...";
 
-    // Список найденных ошибок
     public ObservableCollection<SpellingError> Errors { get; } = new();
 
-    // Статус проверки
     [ObservableProperty]
     private string _statusMessage = "Готов к проверке";
 
     [ObservableProperty]
     private bool _isBusy;
 
-    // Внедряем сервис проверки через конструктор
+    // ДОБАВЛЯЕМ: Выбранная ошибка из списка
+    [ObservableProperty]
+    private SpellingError? _selectedError;
+
+    // Событие, на которое подпишется UI, чтобы выделить текст
+    public event Action<SpellingError>? ErrorSelected;
+
     public MainViewModel(ISpellchecker spellchecker)
     {
         _spellchecker = spellchecker;
+    }
+
+    // Этот метод срабатывает автоматически при изменении SelectedError
+    partial void OnSelectedErrorChanged(SpellingError? value)
+    {
+        if (value != null)
+        {
+            ErrorSelected?.Invoke(value);
+        }
     }
 
     [RelayCommand]
@@ -51,7 +64,7 @@ public partial class MainViewModel : ViewModelBase
 
             StatusMessage = $"Проверка завершена. Найдено ошибок: {Errors.Count}";
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             StatusMessage = $"Ошибка при проверке: {ex.Message}";
         }

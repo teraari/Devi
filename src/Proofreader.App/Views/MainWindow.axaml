@@ -41,8 +41,9 @@
         <!-- Рабочая область -->
         <Grid Grid.Row="1" ColumnDefinitions="2*, 1*">
             
-            <!-- Левая панель: Ввод текста -->
+            <!-- Левая панель: Ввод текста (Добавлено имя EditorTextBox) -->
             <TextBox Grid.Column="0" 
+                     x:Name="EditorTextBox"
                      Text="{Binding InputText, Mode=TwoWay}" 
                      AcceptsReturn="True" 
                      TextWrapping="Wrap"
@@ -53,22 +54,21 @@
                      BorderBrush="{StaticResource BrushBorder}"
                      BorderThickness="1" />
 
-            <!-- Правая панель: Список ошибок -->
+            <!-- Правая панель: Список ошибок (Добавлен SelectedItem) -->
             <Border Grid.Column="1" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1,0,0,0">
                 <Grid RowDefinitions="Auto, *">
                     <TextBlock Grid.Row="0" Text="НАЙДЕННЫЕ ОШИБКИ" FontWeight="Bold" FontSize="12" Margin="10" Foreground="{StaticResource BrushBorder}"/>
                     
                     <ListBox Grid.Row="1" 
                              ItemsSource="{Binding Errors}" 
+                             SelectedItem="{Binding SelectedError, Mode=TwoWay}"
                              Background="Transparent" 
                              BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="models:SpellingError">
                                 <StackPanel Margin="5">
-                                    <!-- Слово с ошибкой -->
                                     <TextBlock Text="{Binding Word}" Foreground="{StaticResource BrushAccent}" FontWeight="Bold" FontSize="14"/>
                                     
-                                    <!-- Варианты исправлений -->
                                     <ItemsControl ItemsSource="{Binding Suggestions}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
