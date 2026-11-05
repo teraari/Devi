@@ -1,18 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace Proofreader.Core.Models;
 
 public class SpellingError
 {
-    // Само слово с ошибкой
     public string Word { get; set; } = string.Empty;
-    
-    // Позиция слова в тексте (с какого символа начинается)
     public int StartIndex { get; set; }
-    
-    // Длина слова
     public int Length { get; set; }
-    
-    // Список предлагаемых исправлений
     public List<string> Suggestions { get; set; } = new();
+
+    // КОМАНДА: Принять исправление (вызывается из UI при клике на слово)
+    public ICommand? ApplySuggestionCommand { get; set; }
 }

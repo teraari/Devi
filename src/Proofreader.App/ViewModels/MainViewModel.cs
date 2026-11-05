@@ -23,11 +23,9 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isBusy;
 
-    // ДОБАВЛЯЕМ: Выбранная ошибка из списка
     [ObservableProperty]
     private SpellingError? _selectedError;
 
-    // Событие, на которое подпишется UI, чтобы выделить текст
     public event Action<SpellingError>? ErrorSelected;
 
     public MainViewModel(ISpellchecker spellchecker)
@@ -35,7 +33,6 @@ public partial class MainViewModel : ViewModelBase
         _spellchecker = spellchecker;
     }
 
-    // Этот метод срабатывает автоматически при изменении SelectedError
     partial void OnSelectedErrorChanged(SpellingError? value)
     {
         if (value != null)
@@ -59,6 +56,8 @@ public partial class MainViewModel : ViewModelBase
             
             foreach (var error in foundErrors)
             {
+                // ДОБАВЛЯЕМ: Выдаем каждой ошибке команду для замены
+                error.ApplySuggestionCommand = new RelayCommand<string>(suggestion => ApplyFix(error, suggestion));
                 Errors.Add(error);
             }
 
@@ -72,5 +71,33 @@ public partial class MainViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    // НОВЫЙ МЕТОД: Применение исправления
+    private void ApplyFix(SpellingError error, string? suggestion)
+    {
+        if (string.IsNullOrEmpty(suggestion)) return;
+
+        // 1. Заменяем слово в тексте
+        // Берем часть текста до ошибки + подсказку + часть текста после ошибки
+        string textBefore = InputText.Substring(0, error.StartIndex);
+        string textAfter = InputText.Substring(error.StartIndex + error.Length);
+        
+        InputText = textBefore + suggestion + textAfter;
+
+        // 2. Удаляем эту ошибку из списка
+        Errors.Remove(error);
+
+        // 3. Сдвигаем индексы всех последующих ошибок, так как длина текста изменилась
+        int lengthDifference = suggestion.Length - error.Length;
+        foreach (var remainingError in Errors)
+        {
+            if (remainingError.StartIndex > error.StartIndex)
+            {
+                remainingError.StartIndex += lengthDifference;
+            }
+        }
+
+        StatusMessage = $"Исправлено: '{error.Word}' -> '{suggestion}'";
     }
 }

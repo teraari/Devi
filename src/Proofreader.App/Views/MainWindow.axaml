@@ -77,7 +77,17 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding}" Foreground="#5AF78E" Margin="0,5,10,0" FontSize="13"/>
+                                                                                                <Button Content="{Binding}" 
+                                                        Command="{Binding $parent[ItemsControl].((models:SpellingError)DataContext).ApplySuggestionCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent"
+                                                        Foreground="#5AF78E" 
+                                                        BorderThickness="1"
+                                                        BorderBrush="#335AF78E"
+                                                        Margin="0,5,10,0" 
+                                                        Padding="5,2"
+                                                        FontSize="13" 
+                                                        CornerRadius="0"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
