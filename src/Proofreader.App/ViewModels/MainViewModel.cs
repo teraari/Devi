@@ -11,14 +11,16 @@ namespace Proofreader.App.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly ISpellchecker _spellchecker;
+    private readonly ITextFileService _textFileService;
+    private readonly IFileDialogService _fileDialogService;
 
     [ObservableProperty]
-    private string _inputText = "Вставьте или напишите ваш текст здесь для проверки...";
+    private string _inputText = "";
 
     public ObservableCollection<SpellingError> Errors { get; } = new();
 
     [ObservableProperty]
-    private string _statusMessage = "Готов к проверке";
+    private string _statusMessage = "Готов к работе";
 
     [ObservableProperty]
     private bool _isBusy;
@@ -28,9 +30,15 @@ public partial class MainViewModel : ViewModelBase
 
     public event Action<SpellingError>? ErrorSelected;
 
-    public MainViewModel(ISpellchecker spellchecker)
+    // Внедряем новые сервисы
+    public MainViewModel(
+        ISpellchecker spellchecker,
+        ITextFileService textFileService,
+        IFileDialogService fileDialogService)
     {
         _spellchecker = spellchecker;
+        _textFileService = textFileService;
+        _fileDialogService = fileDialogService;
     }
 
     partial void OnSelectedErrorChanged(SpellingError? value)
@@ -38,6 +46,47 @@ public partial class MainViewModel : ViewModelBase
         if (value != null)
         {
             ErrorSelected?.Invoke(value);
+        }
+    }
+
+    // НОВАЯ КОМАНДА: Открыть файл
+    [RelayCommand]
+    private async Task OpenFileAsync()
+    {
+        var path = await _fileDialogService.PickTextFileToOpenAsync();
+        if (string.IsNullOrEmpty(path)) return;
+
+        StatusMessage = "Загрузка файла...";
+        var text = await _textFileService.LoadTextAsync(path);
+        
+        if (text != null)
+        {
+            InputText = text;
+            Errors.Clear(); // Очищаем старые ошибки при загрузке нового файла
+            StatusMessage = $"Файл загружен: {System.IO.Path.GetFileName(path)}";
+        }
+        else
+        {
+            StatusMessage = "Ошибка при чтении файла.";
+        }
+    }
+
+    // НОВАЯ КОМАНДА: Сохранить файл
+    [RelayCommand]
+    private async Task SaveFileAsync()
+    {
+        var path = await _fileDialogService.PickTextFileToSaveAsync();
+        if (string.IsNullOrEmpty(path)) return;
+
+        StatusMessage = "Сохранение файла...";
+        try
+        {
+            await _textFileService.SaveTextAsync(path, InputText);
+            StatusMessage = $"Файл сохранен: {System.IO.Path.GetFileName(path)}";
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Ошибка при сохранении файла.";
         }
     }
 
@@ -56,7 +105,6 @@ public partial class MainViewModel : ViewModelBase
             
             foreach (var error in foundErrors)
             {
-                // ДОБАВЛЯЕМ: Выдаем каждой ошибке команду для замены
                 error.ApplySuggestionCommand = new RelayCommand<string>(suggestion => ApplyFix(error, suggestion));
                 Errors.Add(error);
             }
@@ -73,22 +121,17 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // НОВЫЙ МЕТОД: Применение исправления
     private void ApplyFix(SpellingError error, string? suggestion)
     {
         if (string.IsNullOrEmpty(suggestion)) return;
 
-        // 1. Заменяем слово в тексте
-        // Берем часть текста до ошибки + подсказку + часть текста после ошибки
         string textBefore = InputText.Substring(0, error.StartIndex);
         string textAfter = InputText.Substring(error.StartIndex + error.Length);
         
         InputText = textBefore + suggestion + textAfter;
 
-        // 2. Удаляем эту ошибку из списка
         Errors.Remove(error);
 
-        // 3. Сдвигаем индексы всех последующих ошибок, так как длина текста изменилась
         int lengthDifference = suggestion.Length - error.Length;
         foreach (var remainingError in Errors)
         {

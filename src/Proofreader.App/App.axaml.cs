@@ -1,10 +1,13 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Proofreader.App.Services;
 using Proofreader.App.ViewModels;
 using Proofreader.App.Views;
 using Proofreader.Core.Interfaces;
+using Proofreader.Infrastructure.Files;
 using Proofreader.Language;
 
 namespace Proofreader.App;
@@ -23,19 +26,23 @@ public partial class App : global::Avalonia.Application
             // Настраиваем DI-контейнер
             var services = new ServiceCollection();
 
-            // Регистрируем наш словарь (он будет один на все приложение)
+            // Регистрируем сервисы
             services.AddSingleton<ISpellchecker, HunspellSpellchecker>();
-            
-            // Регистрируем ViewModel
+            services.AddSingleton<ITextFileService, TextFileService>();
             services.AddTransient<MainViewModel>();
+
+            // Создаем главное окно
+            var mainWindow = new MainWindow();
+            
+            // Регистрируем окно и сервис диалогов (зависит от окна)
+            services.AddSingleton<Window>(mainWindow);
+            services.AddSingleton<IFileDialogService, FileDialogService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
-            // Создаем окно и передаем ему ViewModel
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = serviceProvider.GetRequiredService<MainViewModel>()
-            };
+            // Передаем ViewModel в окно и показываем его
+            mainWindow.DataContext = serviceProvider.GetRequiredService<MainViewModel>();
+            desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
