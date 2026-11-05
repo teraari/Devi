@@ -16,7 +16,6 @@ public partial class MainWindow : Window
     {
         base.OnDataContextChanged(e);
 
-        // Подписываемся на событие выбора ошибки из ViewModel
         if (DataContext is MainViewModel vm)
         {
             vm.ErrorSelected += OnErrorSelected;
@@ -25,11 +24,13 @@ public partial class MainWindow : Window
 
     private void OnErrorSelected(SpellingError error)
     {
-        // Выделяем слово в текстовом поле
+        // В AvaloniaEdit выделение задается через длину, а не конечный индекс
         EditorTextBox.SelectionStart = error.StartIndex;
-        EditorTextBox.SelectionEnd = error.StartIndex + error.Length;
+        EditorTextBox.SelectionLength = error.Length;
         
-        // Переводим фокус на поле, чтобы пользователь сразу мог начать печатать
+        // Устанавливаем курсор в начало ошибки
+        EditorTextBox.CaretOffset = error.StartIndex;
+        
         EditorTextBox.Focus();
     }
 }

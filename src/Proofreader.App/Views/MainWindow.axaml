@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Proofreader.App.ViewModels"
         xmlns:models="using:Proofreader.Core.Models"
+        xmlns:controls="using:Proofreader.App.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
@@ -43,18 +44,18 @@
         <!-- Рабочая область -->
         <Grid Grid.Row="1" ColumnDefinitions="2*, 1*">
             
-            <!-- Левая панель: Ввод текста -->
-            <TextBox Grid.Column="0" 
-                     x:Name="EditorTextBox"
-                     Text="{Binding InputText, Mode=TwoWay}" 
-                     AcceptsReturn="True" 
-                     TextWrapping="Wrap"
-                     FontSize="16"
-                     Margin="10"
-                     Background="{StaticResource BrushPanel}"
-                     Foreground="{StaticResource BrushText}"
-                     BorderBrush="{StaticResource BrushBorder}"
-                     BorderThickness="1" />
+            <!-- Левая панель: Редактор кода -->
+            <controls:BindableTextEditor Grid.Column="0" 
+                                         x:Name="EditorTextBox"
+                                         DocumentText="{Binding InputText, Mode=TwoWay}" 
+                                         Errors="{Binding Errors}"
+                                         FontFamily="Consolas, Courier New, monospace"
+                                         FontSize="16"
+                                         Margin="10"
+                                         Background="{StaticResource BrushPanel}"
+                                         Foreground="{StaticResource BrushText}"
+                                         ShowLineNumbers="True"
+                                         Focusable="True" />
 
             <!-- Правая панель: Список ошибок -->
             <Border Grid.Column="1" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1,0,0,0">
