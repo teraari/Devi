@@ -10,4 +10,12 @@
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="BrushBackground" Color="#121212" />
+        <SolidColorBrush x:Key="BrushPanel" Color="#1E1E1E" />
+        <SolidColorBrush x:Key="BrushBorder" Color="#555555" />
+        <SolidColorBrush x:Key="BrushText" Color="#D4D4D4" />
+        <SolidColorBrush x:Key="BrushAccent" Color="#E06C75" />
+    </Application.Resources>
 </Application>

@@ -1,22 +1,99 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Proofreader.App.ViewModels"
+        xmlns:models="using:Proofreader.Core.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
         x:Class="Proofreader.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="Proofreader.App">
+        Background="{StaticResource BrushBackground}"
+        Foreground="{StaticResource BrushText}"
+        Title="Proofreader - Проверка документации">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
-    </Design.DataContext>
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="{StaticResource BrushPanel}" />
+            <Setter Property="Foreground" Value="{StaticResource BrushText}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="15,8" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BrushBorder}" />
+        </Style>
+    </Window.Styles>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+    <Grid RowDefinitions="Auto, *, Auto">
+        
+        <!-- Панель инструментов -->
+        <Border Grid.Row="0" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="10">
+            <Grid ColumnDefinitions="Auto, *">
+                <Button Content="ПРОВЕРИТЬ ТЕКСТ" 
+                        Command="{Binding CheckTextCommand}" 
+                        IsEnabled="{Binding !IsBusy}"
+                        FontWeight="Bold" />
+            </Grid>
+        </Border>
 
+        <!-- Рабочая область -->
+        <Grid Grid.Row="1" ColumnDefinitions="2*, 1*">
+            
+            <!-- Левая панель: Ввод текста -->
+            <TextBox Grid.Column="0" 
+                     Text="{Binding InputText, Mode=TwoWay}" 
+                     AcceptsReturn="True" 
+                     TextWrapping="Wrap"
+                     FontSize="16"
+                     Margin="10"
+                     Background="{StaticResource BrushPanel}"
+                     Foreground="{StaticResource BrushText}"
+                     BorderBrush="{StaticResource BrushBorder}"
+                     BorderThickness="1" />
+
+            <!-- Правая панель: Список ошибок -->
+            <Border Grid.Column="1" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1,0,0,0">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="НАЙДЕННЫЕ ОШИБКИ" FontWeight="Bold" FontSize="12" Margin="10" Foreground="{StaticResource BrushBorder}"/>
+                    
+                    <ListBox Grid.Row="1" 
+                             ItemsSource="{Binding Errors}" 
+                             Background="Transparent" 
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:SpellingError">
+                                <StackPanel Margin="5">
+                                    <!-- Слово с ошибкой -->
+                                    <TextBlock Text="{Binding Word}" Foreground="{StaticResource BrushAccent}" FontWeight="Bold" FontSize="14"/>
+                                    
+                                    <!-- Варианты исправлений -->
+                                    <ItemsControl ItemsSource="{Binding Suggestions}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" Foreground="#5AF78E" Margin="0,5,10,0" FontSize="13"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <!-- Нижняя панель (Статус) -->
+        <Border Grid.Row="2" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,1,0,0" Padding="10,5">
+            <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource BrushBorder}" />
+        </Border>
+
+    </Grid>
 </Window>
