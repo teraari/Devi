@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -28,7 +29,7 @@ public class FileDialogService : IFileDialogService
             { 
                 new FilePickerFileType("Поддерживаемые файлы") 
                 { 
-                    Patterns = new[] { "*.txt", "*.docx" } // <-- ДОБАВИЛИ DOCX
+                    Patterns = new[] { "*.txt", "*.docx" } 
                 } 
             }
         });
@@ -36,17 +37,20 @@ public class FileDialogService : IFileDialogService
         return files.FirstOrDefault()?.TryGetLocalPath();
     }
 
-    public async Task<string?> PickTextFileToSaveAsync()
+    public async Task<string?> PickTextFileToSaveAsync(string suggestedName)
     {
         var topLevel = TopLevel.GetTopLevel(_mainWindow);
         if (topLevel == null) return null;
 
-        // Пока сохраняем только в TXT
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Сохранить текстовый файл",
-            DefaultExtension = "txt",
-            FileTypeChoices = new[] { new FilePickerFileType("Текстовые файлы") { Patterns = new[] { "*.txt" } } }
+            Title = "Сохранить документ",
+            SuggestedFileName = suggestedName,
+            FileTypeChoices = new[] 
+            { 
+                new FilePickerFileType("Документ Word") { Patterns = new[] { "*.docx" } },
+                new FilePickerFileType("Текстовый файл") { Patterns = new[] { "*.txt" } }
+            }
         });
 
         return file?.TryGetLocalPath();

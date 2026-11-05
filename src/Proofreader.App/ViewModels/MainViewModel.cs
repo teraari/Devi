@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,11 +12,15 @@ namespace Proofreader.App.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly ISpellchecker _spellchecker;
-    private readonly IFileService _fileService; // <-- ИЗМЕНЕНО
+    private readonly IFileService _fileService;
     private readonly IFileDialogService _fileDialogService;
 
     [ObservableProperty]
     private string _inputText = "";
+
+    // НОВОЕ СВОЙСТВО: Имя текущего файла (для диалога сохранения)
+    [ObservableProperty]
+    private string _currentFileName = "Новый_документ.docx";
 
     public ObservableCollection<SpellingError> Errors { get; } = new();
 
@@ -30,14 +35,13 @@ public partial class MainViewModel : ViewModelBase
 
     public event Action<SpellingError>? ErrorSelected;
 
-    // Внедряем сервисы
     public MainViewModel(
         ISpellchecker spellchecker,
-        IFileService fileService, // <-- ИЗМЕНЕНО
+        IFileService fileService,
         IFileDialogService fileDialogService)
     {
         _spellchecker = spellchecker;
-        _fileService = fileService; // <-- ИЗМЕНЕНО
+        _fileService = fileService;
         _fileDialogService = fileDialogService;
     }
 
@@ -57,17 +61,18 @@ public partial class MainViewModel : ViewModelBase
         if (string.IsNullOrEmpty(path)) return;
 
         StatusMessage = "Загрузка файла...";
-        var text = await _fileService.LoadTextAsync(path); // <-- ИЗМЕНЕНО
+        var text = await _fileService.LoadTextAsync(path);
         
         if (text != null)
         {
             InputText = text;
-            Errors.Clear(); // Очищаем старые ошибки при загрузке нового файла
-            StatusMessage = $"Файл загружен: {System.IO.Path.GetFileName(path)}";
+            CurrentFileName = Path.GetFileName(path); // Обновляем имя файла
+            Errors.Clear(); 
+            StatusMessage = $"Файл загружен: {CurrentFileName}";
         }
         else
         {
-            StatusMessage = "Ошибка при чтении файла.";
+            StatusMessage = "Ошибка при чтении файла (возможно, он поврежден или занят).";
         }
     }
 
@@ -75,18 +80,20 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveFileAsync()
     {
-        var path = await _fileDialogService.PickTextFileToSaveAsync();
+        // Передаем текущее имя файла в диалоговое окно
+        var path = await _fileDialogService.PickTextFileToSaveAsync(CurrentFileName);
         if (string.IsNullOrEmpty(path)) return;
 
         StatusMessage = "Сохранение файла...";
         try
         {
-            await _fileService.SaveTextAsync(path, InputText); // <-- ИЗМЕНЕНО
-            StatusMessage = $"Файл сохранен: {System.IO.Path.GetFileName(path)}";
+            await _fileService.SaveTextAsync(path, InputText);
+            CurrentFileName = Path.GetFileName(path); // Обновляем имя после сохранения
+            StatusMessage = $"Файл сохранен: {CurrentFileName}";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            StatusMessage = "Ошибка при сохранении файла.";
+            StatusMessage = $"Ошибка при сохранении: {ex.Message}";
         }
     }
 
@@ -132,6 +139,7 @@ public partial class MainViewModel : ViewModelBase
 
         Errors.Remove(error);
 
+        // Сдвигаем индексы оставшихся ошибок, так как длина текста изменилась
         int lengthDifference = suggestion.Length - error.Length;
         foreach (var remainingError in Errors)
         {

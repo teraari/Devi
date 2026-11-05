@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Proofreader.Core.Interfaces;
@@ -29,7 +29,7 @@ public class FileService : IFileService
                 return await File.ReadAllTextAsync(filePath);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Возвращаем null, если не удалось прочитать файл (например, он поврежден)
             return null;
@@ -38,9 +38,40 @@ public class FileService : IFileService
 
     public async Task SaveTextAsync(string filePath, string text)
     {
-        // Пока мы умеем сохранять только в TXT.
-        // Сохранение в DOCX с восстановлением структуры будет на следующем этапе.
-        await File.WriteAllTextAsync(filePath, text);
+        var extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+        if (extension == ".docx")
+        {
+            await Task.Run(() => 
+            {
+                // Создаем НОВЫЙ документ Word
+                using var wordDoc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
+                var mainPart = wordDoc.AddMainDocumentPart();
+                mainPart.Document = new Document();
+                var body = mainPart.Document.AppendChild(new Body());
+
+                // Разбиваем текст на строки, чтобы сделать абзацы
+                var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                
+                foreach (var line in lines)
+                {
+                    var paragraph = new Paragraph();
+                    var run = new Run();
+                    var textElement = new Text(line) { Space = SpaceProcessingModeValues.Preserve };
+                    
+                    run.AppendChild(textElement);
+                    paragraph.AppendChild(run);
+                    body.AppendChild(paragraph);
+                }
+                
+                mainPart.Document.Save();
+            });
+        }
+        else
+        {
+            // Обычное сохранение текста для .txt и других форматов
+            await File.WriteAllTextAsync(filePath, text);
+        }
     }
 
     // Метод для извлечения текста из DOCX

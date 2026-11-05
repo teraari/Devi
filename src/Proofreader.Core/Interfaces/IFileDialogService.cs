@@ -5,5 +5,7 @@ namespace Proofreader.Core.Interfaces;
 public interface IFileDialogService
 {
     Task<string?> PickTextFileToOpenAsync();
-    Task<string?> PickTextFileToSaveAsync();
+    
+    // Добавлен параметр suggestedName
+    Task<string?> PickTextFileToSaveAsync(string suggestedName);
 }
