@@ -22,9 +22,15 @@ public class FileDialogService : IFileDialogService
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Открыть текстовый файл",
+            Title = "Открыть документ",
             AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("Текстовые файлы") { Patterns = new[] { "*.txt" } } }
+            FileTypeFilter = new[] 
+            { 
+                new FilePickerFileType("Поддерживаемые файлы") 
+                { 
+                    Patterns = new[] { "*.txt", "*.docx" } // <-- ДОБАВИЛИ DOCX
+                } 
+            }
         });
 
         return files.FirstOrDefault()?.TryGetLocalPath();
@@ -35,6 +41,7 @@ public class FileDialogService : IFileDialogService
         var topLevel = TopLevel.GetTopLevel(_mainWindow);
         if (topLevel == null) return null;
 
+        // Пока сохраняем только в TXT
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Сохранить текстовый файл",

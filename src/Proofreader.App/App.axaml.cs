@@ -28,7 +28,11 @@ public partial class App : global::Avalonia.Application
 
             // Регистрируем сервисы
             services.AddSingleton<ISpellchecker, HunspellSpellchecker>();
-            services.AddSingleton<ITextFileService, TextFileService>();
+            
+            // БЫЛО: services.AddSingleton<ITextFileService, TextFileService>();
+            // СТАЛО:
+            services.AddSingleton<IFileService, FileService>();
+            
             services.AddTransient<MainViewModel>();
 
             // Создаем главное окно

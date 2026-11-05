@@ -11,7 +11,7 @@ namespace Proofreader.App.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly ISpellchecker _spellchecker;
-    private readonly ITextFileService _textFileService;
+    private readonly IFileService _fileService; // <-- ИЗМЕНЕНО
     private readonly IFileDialogService _fileDialogService;
 
     [ObservableProperty]
@@ -30,14 +30,14 @@ public partial class MainViewModel : ViewModelBase
 
     public event Action<SpellingError>? ErrorSelected;
 
-    // Внедряем новые сервисы
+    // Внедряем сервисы
     public MainViewModel(
         ISpellchecker spellchecker,
-        ITextFileService textFileService,
+        IFileService fileService, // <-- ИЗМЕНЕНО
         IFileDialogService fileDialogService)
     {
         _spellchecker = spellchecker;
-        _textFileService = textFileService;
+        _fileService = fileService; // <-- ИЗМЕНЕНО
         _fileDialogService = fileDialogService;
     }
 
@@ -49,7 +49,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // НОВАЯ КОМАНДА: Открыть файл
+    // КОМАНДА: Открыть файл
     [RelayCommand]
     private async Task OpenFileAsync()
     {
@@ -57,7 +57,7 @@ public partial class MainViewModel : ViewModelBase
         if (string.IsNullOrEmpty(path)) return;
 
         StatusMessage = "Загрузка файла...";
-        var text = await _textFileService.LoadTextAsync(path);
+        var text = await _fileService.LoadTextAsync(path); // <-- ИЗМЕНЕНО
         
         if (text != null)
         {
@@ -71,7 +71,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // НОВАЯ КОМАНДА: Сохранить файл
+    // КОМАНДА: Сохранить файл
     [RelayCommand]
     private async Task SaveFileAsync()
     {
@@ -81,7 +81,7 @@ public partial class MainViewModel : ViewModelBase
         StatusMessage = "Сохранение файла...";
         try
         {
-            await _textFileService.SaveTextAsync(path, InputText);
+            await _fileService.SaveTextAsync(path, InputText); // <-- ИЗМЕНЕНО
             StatusMessage = $"Файл сохранен: {System.IO.Path.GetFileName(path)}";
         }
         catch (Exception)
