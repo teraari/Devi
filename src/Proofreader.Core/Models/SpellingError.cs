@@ -11,6 +11,8 @@ public class SpellingError
     public int Length { get; set; }
     public List<string> Suggestions { get; set; } = new();
 
-    // КОМАНДА: Принять исправление (вызывается из UI при клике на слово)
-    public ICommand? ApplySuggestionCommand { get; set; }
+    // НОВОЕ: Храним примененное исправление (null, если еще не исправлено)
+    public string? AppliedSuggestion { get; set; }
+
+    public System.Windows.Input.ICommand? ApplySuggestionCommand { get; set; }
 }

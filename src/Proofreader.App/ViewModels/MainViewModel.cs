@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -18,9 +19,12 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string _inputText = "";
 
-    // НОВОЕ СВОЙСТВО: Имя текущего файла (для диалога сохранения)
     [ObservableProperty]
     private string _currentFileName = "Новый_документ.docx";
+
+    // НОВОЕ СВОЙСТВО: Хранит путь к исходному файлу (чтобы при сохранении взять его за основу)
+    [ObservableProperty]
+    private string? _originalFilePath;
 
     public ObservableCollection<SpellingError> Errors { get; } = new();
 
@@ -34,6 +38,9 @@ public partial class MainViewModel : ViewModelBase
     private SpellingError? _selectedError;
 
     public event Action<SpellingError>? ErrorSelected;
+
+    // НОВОЕ: Скрытый список для хранения истории исправлений (для сохранения в DOCX)
+    private readonly List<SpellingError> _appliedFixes = new();
 
     public MainViewModel(
         ISpellchecker spellchecker,
@@ -66,8 +73,12 @@ public partial class MainViewModel : ViewModelBase
         if (text != null)
         {
             InputText = text;
-            CurrentFileName = Path.GetFileName(path); // Обновляем имя файла
+            CurrentFileName = Path.GetFileName(path);
+            OriginalFilePath = path; // <-- ЗАПОМИНАЕМ ИСХОДНЫЙ ПУТЬ
+            
             Errors.Clear(); 
+            _appliedFixes.Clear(); // Очищаем историю исправлений при открытии нового файла
+            
             StatusMessage = $"Файл загружен: {CurrentFileName}";
         }
         else
@@ -80,15 +91,18 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveFileAsync()
     {
-        // Передаем текущее имя файла в диалоговое окно
         var path = await _fileDialogService.PickTextFileToSaveAsync(CurrentFileName);
         if (string.IsNullOrEmpty(path)) return;
 
         StatusMessage = "Сохранение файла...";
         try
         {
-            await _fileService.SaveTextAsync(path, InputText);
-            CurrentFileName = Path.GetFileName(path); // Обновляем имя после сохранения
+            // Передаем оригинальный путь и список примененных исправлений
+            await _fileService.SaveTextAsync(path, InputText, OriginalFilePath, _appliedFixes);
+            
+            CurrentFileName = Path.GetFileName(path);
+            OriginalFilePath = path; // Сохраненный файл становится новым оригиналом
+            
             StatusMessage = $"Файл сохранен: {CurrentFileName}";
         }
         catch (Exception ex)
@@ -104,7 +118,9 @@ public partial class MainViewModel : ViewModelBase
 
         IsBusy = true;
         StatusMessage = "Идет проверка текста...";
+        
         Errors.Clear();
+        _appliedFixes.Clear(); // Очищаем историю исправлений перед новой проверкой
 
         try
         {
@@ -132,14 +148,19 @@ public partial class MainViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(suggestion)) return;
 
+        // 1. Заменяем слово в тексте
         string textBefore = InputText.Substring(0, error.StartIndex);
         string textAfter = InputText.Substring(error.StartIndex + error.Length);
-        
         InputText = textBefore + suggestion + textAfter;
 
+        // 2. Запоминаем исправление для OpenXML
+        error.AppliedSuggestion = suggestion;
+        _appliedFixes.Add(error);
+
+        // 3. Убираем ошибку из визуального списка
         Errors.Remove(error);
 
-        // Сдвигаем индексы оставшихся ошибок, так как длина текста изменилась
+        // 4. Сдвигаем индексы оставшихся ошибок, так как длина текста изменилась
         int lengthDifference = suggestion.Length - error.Length;
         foreach (var remainingError in Errors)
         {
