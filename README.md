@@ -120,7 +120,7 @@ Devi — полностью автономный инструмент.
 
 **Шаг 2. Скачайте модель ИИ (Обязательно)**
 Из-за ограничений GitHub на размер файлов (макс. 100 МБ), модель скачивается отдельно.
-1. Скачайте файл `saiga_yandexgpt_8b.Q4_K_M.gguf` (~4.6 ГБ) по ссылке: *(вставьте сюда ссылку на HuggingFace или Яндекс.Диск)*.
+1. Скачайте файл `saiga_yandexgpt_8b.Q4_K_M.gguf` (~4.6 ГБ) по ссылке: [прямой ссылке с Hugging Face](https://huggingface.co/IlyaGusev/saiga_yandexgpt_8b_gguf/resolve/main/saiga_yandexgpt_8b.Q4_K_M.gguf?download=true).
 2. Переименуйте скачанный файл в **`saiga.gguf`**.
 3. Переместите файл `saiga.gguf` в папку **`Dictionaries`**, которая находится рядом с `Devi.exe`.
 
