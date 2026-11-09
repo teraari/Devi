@@ -15,7 +15,8 @@ Devi — настольное приложение для проверки, ис
 
 ##  Скриншоты
 
-[Интерфейс Devi](Assers\screenshot_devi.png)
+<img width="1424" height="721" alt="screenshot_devi" src="https://github.com/user-attachments/assets/5a467c50-540c-4678-94e9-744cc99104d3" />
+
 
 ---
 
