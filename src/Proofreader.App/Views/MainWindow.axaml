@@ -92,7 +92,6 @@
                 <MenuItem Header="Сохранить все" IsEnabled="False" />
                 <Separator />
                 
-                <!-- ОБНОВЛЕННЫЙ БЛОК ЭКСПОРТА -->
                 <MenuItem Header="Экспортировать">
                     <MenuItem Header="DOCX" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="docx" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     <MenuItem Header="HTML" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="html" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -181,9 +180,11 @@
                     </StackPanel>
                 </Button>
 
+                <!-- НОВАЯ ИКОНКА ДЛЯ ИИ -->
                 <Button Command="{Binding ActiveDocument.AiFixCommand}" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,0,0,0" ToolTip.Tip="Глубокое исправление с помощью нейросети Saiga (требует времени на CPU)">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Fill="#FF9800" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
+                        <!-- Иконка "Искры" (Sparkles) -->
+                        <Path Data="M19,9l1.25,-2.75L23,5l-2.75,-1.25L19,1l-1.25,2.75L15,5l2.75,1.25L19,9z M11.5,9.5L9,4L6.5,9.5L1,12l5.5,2.5L9,20l2.5,-5.5L17,12l-5.5,-2.5z M19,15l-1.25,2.75L15,19l2.75,1.25L19,23l1.25,-2.75L23,19l-2.75,-1.25L19,15z" Fill="#FFD700" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
                         <TextBlock Text="Исправить с ИИ" VerticalAlignment="Center" FontSize="12" />
                     </StackPanel>
                 </Button>
@@ -284,7 +285,6 @@
                         <ToggleButton Content="Грамматика" Command="{Binding ActiveDocument.SetFilterCommand}" CommandParameter="Grammar"/>
                     </WrapPanel>
 
-                    <!-- ИСПРАВЛЕНО: Привязка к IsSuccess -->
                     <TextBlock Grid.Row="2" 
                                Text="Ошибок не найдено! Текст идеален." 
                                Foreground="#4CAF50" 
