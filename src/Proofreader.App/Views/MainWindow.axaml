@@ -3,110 +3,386 @@
         xmlns:vm="using:Proofreader.App.ViewModels"
         xmlns:models="using:Proofreader.Core.Models"
         xmlns:controls="using:Proofreader.App.Controls"
+        xmlns:conv="using:Proofreader.App.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Proofreader.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Background="{StaticResource BrushBackground}"
-        Foreground="{StaticResource BrushText}"
-        Title="Proofreader - Проверка документации">
+        Icon="/Assets/devi.ico"
+        Title="Devi - Интеллектуальный корректор"
+        Background="#1E1E1E" Foreground="#CCCCCC">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding CreateDocumentCommand}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFileCommand}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding ActiveDocument.SaveDocumentCommand}"/>
+        <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseDocumentCommand}" CommandParameter="{Binding ActiveDocument}"/>
+        <KeyBinding Gesture="F5" Command="{Binding ActiveDocument.CheckTextCommand}"/>
+        <KeyBinding Gesture="F6" Command="{Binding ActiveDocument.AiFixCommand}"/>
+        <KeyBinding Gesture="F8" Command="{Binding ActiveDocument.NextErrorCommand}"/>
+        <KeyBinding Gesture="Shift+F8" Command="{Binding ActiveDocument.PreviousErrorCommand}"/>
+        <KeyBinding Gesture="Ctrl+Add" Command="{Binding ZoomInCommand}"/>
+        <KeyBinding Gesture="Ctrl+Subtract" Command="{Binding ZoomOutCommand}"/>
+        <KeyBinding Gesture="Ctrl+D0" Command="{Binding ResetZoomCommand}"/>
+    </Window.KeyBindings>
 
     <Window.Styles>
         <Style Selector="Button">
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Background" Value="{StaticResource BrushPanel}" />
-            <Setter Property="Foreground" Value="{StaticResource BrushText}" />
-            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="15,8" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource BrushBorder}" />
+            <Setter Property="Background" Value="#3E3E42" />
+        </Style>
+        <Style Selector="MenuItem">
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Menu">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#007ACC" />
+        </Style>
+        <Style Selector="ToggleButton">
+            <Setter Property="Background" Value="#333333" />
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="BorderBrush" Value="#444444" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,3" />
+            <Setter Property="Margin" Value="0,0,4,4" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style Selector="ToggleButton:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#007ACC" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto, *, Auto">
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
         
-        <!-- Панель инструментов -->
-        <Border Grid.Row="0" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="10">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="ОТКРЫТЬ ФАЙЛ" Command="{Binding OpenFileCommand}" FontWeight="Bold" />
-                <Button Content="СОХРАНИТЬ" Command="{Binding SaveFileCommand}" FontWeight="Bold" />
-                <Button Content="ПРОВЕРИТЬ ТЕКСТ" 
-                        Command="{Binding CheckTextCommand}" 
-                        IsEnabled="{Binding !IsBusy}"
-                        FontWeight="Bold" />
+        <Menu Grid.Row="0" Background="#252526" Padding="5,0">
+            <MenuItem Header="Файл">
+                <MenuItem Header="Новый документ" Command="{Binding CreateDocumentCommand}" InputGesture="Ctrl+N"/>
+                <MenuItem Header="Открыть документ..." Command="{Binding OpenFileCommand}" InputGesture="Ctrl+O"/>
+                <MenuItem Header="Открыть папку" IsEnabled="False" />
+                <MenuItem Header="Последние документы">
+                    <MenuItem Header="(Список пуст)" IsEnabled="False" />
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Сохранить" Command="{Binding ActiveDocument.SaveDocumentCommand}" InputGesture="Ctrl+S" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <MenuItem Header="Сохранить как..." IsEnabled="False" InputGesture="Ctrl+Shift+S"/>
+                <MenuItem Header="Сохранить все" IsEnabled="False" />
+                <Separator />
+                
+                <!-- ОБНОВЛЕННЫЙ БЛОК ЭКСПОРТА -->
+                <MenuItem Header="Экспортировать">
+                    <MenuItem Header="DOCX" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="docx" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <MenuItem Header="HTML" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="html" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <MenuItem Header="PDF" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="pdf" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <MenuItem Header="TXT" Command="{Binding ActiveDocument.ExportFileCommand}" CommandParameter="txt" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </MenuItem>
+                
+                <MenuItem Header="Печать..." IsEnabled="False" InputGesture="Ctrl+P"/>
+                <MenuItem Header="Свойства документа" IsEnabled="False" />
+                <Separator />
+                <MenuItem Header="Закрыть документ" Command="{Binding CloseDocumentCommand}" CommandParameter="{Binding ActiveDocument}" InputGesture="Ctrl+W" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <MenuItem Header="Выход" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
+            </MenuItem>
+
+            <MenuItem Header="Правка">
+                <MenuItem Header="Отменить" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z"/>
+                <MenuItem Header="Повторить" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y"/>
+                <Separator />
+                <MenuItem Header="Вырезать" Command="{Binding CutCommand}" InputGesture="Ctrl+X"/>
+                <MenuItem Header="Копировать" Command="{Binding CopyCommand}" InputGesture="Ctrl+C"/>
+                <MenuItem Header="Вставить" Command="{Binding PasteCommand}" InputGesture="Ctrl+V"/>
+                <MenuItem Header="Удалить" Command="{Binding DeleteTextCommand}" InputGesture="Delete"/>
+                <MenuItem Header="Выделить всё" Command="{Binding SelectAllCommand}" InputGesture="Ctrl+A"/>
+                <Separator />
+                <MenuItem Header="Найти..." IsEnabled="False" InputGesture="Ctrl+F"/>
+                <MenuItem Header="Заменить..." IsEnabled="False" InputGesture="Ctrl+H"/>
+                <MenuItem Header="Перейти к странице..." IsEnabled="False" InputGesture="Ctrl+G"/>
+            </MenuItem>
+
+            <MenuItem Header="Вид">
+                <MenuItem Header="Показать/скрыть левую панель" Command="{Binding ToggleLeftPanelCommand}"/>
+                <MenuItem Header="Показать/скрыть правую панель" Command="{Binding ToggleRightPanelCommand}"/>
+                <Separator />
+                <MenuItem Header="Перенос строк" Command="{Binding ToggleWordWrapCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Fill="#4CAF50" IsVisible="{Binding WordWrap}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Увеличить масштаб" Command="{Binding ZoomInCommand}" InputGesture="Ctrl+Add"/>
+                <MenuItem Header="Уменьшить масштаб" Command="{Binding ZoomOutCommand}" InputGesture="Ctrl+Subtract"/>
+                <MenuItem Header="Масштаб 100%" Command="{Binding ResetZoomCommand}" InputGesture="Ctrl+D0"/>
+                <MenuItem Header="Полноэкранный режим" IsEnabled="False" InputGesture="F11"/>
+            </MenuItem>
+
+            <MenuItem Header="Проверка">
+                <MenuItem Header="Быстрая проверка" Command="{Binding ActiveDocument.CheckTextCommand}" InputGesture="F5" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <MenuItem Header="Исправить с ИИ" Command="{Binding ActiveDocument.AiFixCommand}" InputGesture="F6" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <MenuItem Header="Проверить выделенный текст" IsEnabled="False" InputGesture="Ctrl+F5"/>
+                <MenuItem Header="Остановить проверку" IsEnabled="False" InputGesture="Escape"/>
+                <Separator />
+                <MenuItem Header="Следующая ошибка" Command="{Binding ActiveDocument.NextErrorCommand}" InputGesture="F8" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <MenuItem Header="Предыдущая ошибка" Command="{Binding ActiveDocument.PreviousErrorCommand}" InputGesture="Shift+F8" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <Separator />
+                <MenuItem Header="Настройки проверки" IsEnabled="False" />
+                <MenuItem Header="Управление словарями" IsEnabled="False" />
+            </MenuItem>
+
+            <MenuItem Header="Справка">
+                <MenuItem Header="Документация" Command="{Binding ShowDocumentationCommand}" />
+                <MenuItem Header="Горячие клавиши" Command="{Binding ShowShortcutsCommand}" />
+                <Separator />
+                <MenuItem Header="О программе" Command="{Binding ShowAboutCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <Border Grid.Row="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,1,0,1" Padding="8,4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Command="{Binding OpenFileCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Fill="#CCCCCC" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
+                        <TextBlock Text="Открыть" VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ActiveDocument.SaveDocumentCommand}" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Data="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" Fill="#CCCCCC" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
+                        <TextBlock Text="Сохранить" VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+                </Button>
+                <Rectangle Width="1" Fill="#3E3E42" Margin="4,0" />
+                
+                <Button Command="{Binding ActiveDocument.CheckTextCommand}" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Мгновенная проверка орфографии и пунктуации (без ИИ)">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Data="M8 5v14l11-7z" Fill="#4CAF50" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
+                        <TextBlock Text="Быстрая проверка" VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding ActiveDocument.AiFixCommand}" IsEnabled="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,0,0,0" ToolTip.Tip="Глубокое исправление с помощью нейросети Saiga (требует времени на CPU)">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Fill="#FF9800" Width="16" Height="16" Stretch="Fill" VerticalAlignment="Center"/>
+                        <TextBlock Text="Исправить с ИИ" VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
 
-        <!-- Рабочая область -->
-        <Grid Grid.Row="1" ColumnDefinitions="2*, 1*">
-            
-            <!-- Левая панель: Редактор кода -->
-            <controls:BindableTextEditor Grid.Column="0" 
-                                         x:Name="EditorTextBox"
-                                         DocumentText="{Binding InputText, Mode=TwoWay}" 
-                                         Errors="{Binding Errors}"
-                                         FontFamily="Consolas, Courier New, monospace"
-                                         FontSize="16"
-                                         Margin="10"
-                                         Background="{StaticResource BrushPanel}"
-                                         Foreground="{StaticResource BrushText}"
-                                         ShowLineNumbers="True"
-                                         Focusable="True" />
-
-            <!-- Правая панель: Список ошибок -->
-            <Border Grid.Column="1" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1,0,0,0">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto, Auto, *, Auto, Auto">
+            <Border Grid.Column="0" Width="220" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="0,0,1,0"
+                    IsVisible="{Binding IsLeftPanelVisible}">
                 <Grid RowDefinitions="Auto, *">
-                    <TextBlock Grid.Row="0" Text="НАЙДЕННЫЕ ОШИБКИ" FontWeight="Bold" FontSize="12" Margin="10" Foreground="{StaticResource BrushBorder}"/>
-                    
-                    <ListBox Grid.Row="1" 
-                             ItemsSource="{Binding Errors}" 
-                             SelectedItem="{Binding SelectedError, Mode=TwoWay}"
-                             Background="Transparent" 
-                             BorderThickness="0">
+                    <TextBlock Grid.Row="0" Text="ОТКРЫТЫЕ ДОКУМЕНТЫ" FontSize="10" FontWeight="Bold" Foreground="#777777" Margin="10,10,10,5" />
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Documents}" SelectedItem="{Binding ActiveDocument, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:SpellingError">
-                                <StackPanel Margin="5">
-                                    <TextBlock Text="{Binding Word}" Foreground="{StaticResource BrushAccent}" FontWeight="Bold" FontSize="14"/>
-                                    
-                                    <ItemsControl ItemsSource="{Binding Suggestions}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Content="{Binding}" 
-                                                        Command="{Binding $parent[ItemsControl].((models:SpellingError)DataContext).ApplySuggestionCommand}"
-                                                        CommandParameter="{Binding}"
-                                                        Background="Transparent"
-                                                        Foreground="#5AF78E" 
-                                                        BorderThickness="1"
-                                                        BorderBrush="#335AF78E"
-                                                        Margin="0,5,10,0" 
-                                                        Padding="5,2"
-                                                        FontSize="13" 
-                                                        CornerRadius="0"/>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                            <DataTemplate x:DataType="vm:DocumentViewModel">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" 
+                                               Text="{Binding FileName}" 
+                                               VerticalAlignment="Center" 
+                                               TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding !IsEditing}"
+                                               DoubleTapped="OnFileNameDoubleTapped">
+                                        <TextBlock.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Переименовать" Click="OnRenameMenuItemClick" />
+                                            </ContextMenu>
+                                        </TextBlock.ContextMenu>
+                                    </TextBlock>
+
+                                    <TextBox Grid.Column="0" 
+                                             Text="{Binding FileName, Mode=TwoWay}" 
+                                             VerticalAlignment="Center"
+                                             IsVisible="{Binding IsEditing}"
+                                             LostFocus="OnFileNameEditLostFocus"
+                                             KeyDown="OnFileNameEditKeyDown"
+                                             Loaded="OnEditTextBoxLoaded" />
+
+                                    <Button Grid.Column="1" Padding="0" Background="Transparent" BorderThickness="0" Width="16" Height="16" Margin="5,0,0,0"
+                                            Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).CloseDocumentCommand}"
+                                            CommandParameter="{Binding}">
+                                        <Path Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Fill="#888888" Width="10" Height="10" Stretch="Fill" />
+                                    </Button>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </Grid>
             </Border>
 
+            <GridSplitter Grid.Column="1" Width="4" Background="#3E3E42" ResizeDirection="Columns" IsVisible="{Binding IsLeftPanelVisible}"/>
+
+            <Grid Grid.Column="2">
+                <Border Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,0,1" Padding="10,6" IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{Binding ActiveDocument.FileName}" Foreground="#CCCCCC" FontSize="12" />
+                </Border>
+
+                <ContentControl Content="{Binding ActiveDocument}">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate x:DataType="vm:DocumentViewModel">
+                            <controls:BindableTextEditor DocumentText="{Binding InputText, Mode=TwoWay}" 
+                                                         Errors="{Binding EditorErrors}"
+                                                         FontFamily="Consolas, Courier New, monospace"
+                                                         FontSize="{Binding $parent[Window].((vm:MainViewModel)DataContext).Zoom, Converter={x:Static conv:ZoomConverter.Instance}}"
+                                                         Background="#1E1E1E" Foreground="#D4D4D4"
+                                                         ShowLineNumbers="True"
+                                                         WordWrap="{Binding $parent[Window].((vm:MainViewModel)DataContext).WordWrap}"
+                                                         Focusable="True" />
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+                
+                <Grid IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNull}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="15">
+                        <Path Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" Fill="#444444" Width="48" Height="48" Stretch="Uniform" />
+                        <TextBlock Text="Нет открытых документов" FontSize="16" Foreground="#888888" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button Content="ОТКРЫТЬ" Command="{Binding OpenFileCommand}" Background="#333333" Padding="15,8" BorderThickness="1" BorderBrush="#444444"/>
+                            <Button Content="СОЗДАТЬ" Command="{Binding CreateDocumentCommand}" Background="#333333" Padding="15,8" BorderThickness="1" BorderBrush="#444444"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <GridSplitter Grid.Column="3" Width="4" Background="#3E3E42" ResizeDirection="Columns" IsVisible="{Binding IsRightPanelVisible}"/>
+
+            <Border Grid.Column="4" Width="320" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1,0,0,0"
+                    IsVisible="{Binding IsRightPanelVisible}">
+                <Grid RowDefinitions="Auto, Auto, *, Auto">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,10,10,8">
+                        <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Fill="#E06C75" Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="РЕЗУЛЬТАТЫ" FontWeight="Bold" Foreground="#FFFFFF" FontSize="11" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ActiveDocument.ErrorCount, StringFormat=' ({0})'}" Foreground="#888888" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <WrapPanel Grid.Row="1" Margin="10,0,10,8" IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ToggleButton Content="Все" Command="{Binding ActiveDocument.SetFilterCommand}" CommandParameter="All" IsChecked="True"/>
+                        <ToggleButton Content="Орфография" Command="{Binding ActiveDocument.SetFilterCommand}" CommandParameter="Spelling"/>
+                        <ToggleButton Content="Пунктуация" Command="{Binding ActiveDocument.SetFilterCommand}" CommandParameter="Punctuation"/>
+                        <ToggleButton Content="Грамматика" Command="{Binding ActiveDocument.SetFilterCommand}" CommandParameter="Grammar"/>
+                    </WrapPanel>
+
+                    <!-- ИСПРАВЛЕНО: Привязка к IsSuccess -->
+                    <TextBlock Grid.Row="2" 
+                               Text="Ошибок не найдено! Текст идеален." 
+                               Foreground="#4CAF50" 
+                               FontSize="14" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding ActiveDocument.IsSuccess}"
+                               TextWrapping="Wrap" Margin="20"/>
+
+                    <ListBox Grid.Row="2" ItemsSource="{Binding ActiveDocument.FilteredErrors}" SelectedItem="{Binding ActiveDocument.SelectedError, Mode=TwoWay}" Background="Transparent" BorderThickness="0" Margin="5,0" IsVisible="{Binding ActiveDocument.ErrorCount}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:SpellingError">
+                                <Grid ColumnDefinitions="Auto, *" Margin="4">
+                                    <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,6,8,0" VerticalAlignment="Top">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding ErrorType, Converter={x:Static conv:ErrorTypeToColorConverter.Instance}}" />
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Word}" Foreground="#FFFFFF" FontSize="12" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Возможно, пропущена буква." Foreground="#888888" FontSize="10" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Border Grid.Row="3" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="0,1,0,0" Padding="12" 
+                            IsVisible="{Binding ActiveDocument.SelectedError, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Фрагмент:" Foreground="#777777" FontSize="10"/>
+                            <TextBlock Text="{Binding ActiveDocument.SelectedError.Word}" Foreground="#FFFFFF" FontSize="12" TextWrapping="Wrap"/>
+                            
+                            <TextBlock Text="Варианты замены:" Foreground="#777777" FontSize="10" Margin="0,4,0,0"/>
+                            <ItemsControl ItemsSource="{Binding ActiveDocument.SelectedError.Suggestions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding}" 
+                                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).ActiveDocument.SelectedError.ApplySuggestionCommand}"
+                                                CommandParameter="{Binding}"
+                                                HorizontalAlignment="Left" Margin="0,3,0,0" Background="#333333" Foreground="#4CAF50" Padding="6,3" BorderThickness="0" FontSize="11"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <Button Content="Игнорировать" 
+                                    Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).ActiveDocument.IgnoreErrorCommand}"
+                                    CommandParameter="{Binding ActiveDocument.SelectedError}"
+                                    HorizontalAlignment="Left" Background="Transparent" Foreground="#777777" Margin="0,6,0,0" FontSize="10"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
         </Grid>
 
-        <!-- Нижняя панель (Статус) -->
-        <Border Grid.Row="2" Background="{StaticResource BrushPanel}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,1,0,0" Padding="10,5">
-            <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource BrushBorder}" />
-        </Border>
+        <Border Grid.Row="3" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,1,0,0" Padding="10,3">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#CCCCCC" FontSize="11" IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="15" IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Fill="#4CAF50" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActiveDocument.CheckStatus}" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Fill="#E06C75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActiveDocument.ErrorCount, StringFormat='Ошибок: {0}'}" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
 
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" Fill="#CCCCCC" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActiveDocument.WordCount, StringFormat='Слов: {0}'}" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" Fill="#CCCCCC" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActiveDocument.CheckTime, StringFormat='Время: {0}'}" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding ActiveDocument, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Button Background="Transparent" Padding="5,2" Command="{Binding ActiveDocument.PreviousErrorCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Fill="#CCCCCC" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="Предыдущая" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Background="Transparent" Padding="5,2" Command="{Binding ActiveDocument.NextErrorCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Path Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Fill="#CCCCCC" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="Следующая" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

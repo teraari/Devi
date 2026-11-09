@@ -1,0 +1,117 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Proofreader.App.ViewModels"
+        x:Class="Proofreader.App.Views.AboutWindow"
+        x:DataType="vm:AboutViewModel"
+        Icon="/Assets/devi.ico"
+        Title="Devi - О программе"
+        Width="450"
+        Height="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#1E1E1E"
+        Foreground="#CCCCCC">
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="#333333" />
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="15,8" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="*, Auto" Margin="30">
+
+        <StackPanel Grid.Row="0"
+                    Spacing="15"
+                    VerticalAlignment="Center">
+
+            <!-- ВОТ ЗДЕСЬ ТЕПЕРЬ КАРТИНКА -->
+            <Image Source="avares://Devi/Assets/devi.png"
+                   Width="80"
+                   Height="80"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center" />
+
+            <TextBlock Text="Devi"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#FFFFFF"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Инструмент для проверки и редактирования документации"
+                       FontSize="14"
+                       Foreground="#888888"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
+
+            <Rectangle Height="1"
+                       Fill="#3E3E42"
+                       Margin="0,10" />
+
+            <Grid ColumnDefinitions="*, *"
+                  RowDefinitions="Auto, Auto, Auto">
+
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Text="Версия:"
+                           Foreground="#777777" />
+
+                <TextBlock Grid.Row="0"
+                           Grid.Column="1"
+                           Text="{Binding AppVersion}"
+                           Foreground="#CCCCCC" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Text=".NET:"
+                           Foreground="#777777"
+                           Margin="0,5,0,0" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="1"
+                           Text="{Binding DotnetVersion}"
+                           Foreground="#CCCCCC"
+                           Margin="0,5,0,0" />
+
+                <TextBlock Grid.Row="2"
+                           Grid.Column="0"
+                           Text="ОС:"
+                           Foreground="#777777"
+                           Margin="0,5,0,0" />
+
+                <TextBlock Grid.Row="2"
+                           Grid.Column="1"
+                           Text="{Binding OsVersion}"
+                           Foreground="#CCCCCC"
+                           Margin="0,5,0,0"
+                           TextTrimming="CharacterEllipsis" />
+
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,0">
+
+            <Button Content="GitHub"
+                    IsEnabled="False"
+                    ToolTip.Tip="Репозиторий еще не настроен" />
+
+            <Button Content="Лицензия"
+                    IsEnabled="False"
+                    ToolTip.Tip="Лицензия еще не выбрана" />
+
+            <Button Content="Закрыть"
+                    Click="OnCloseClick"
+                    Background="#007ACC"
+                    Foreground="White" />
+
+        </StackPanel>
+    </Grid>
+</Window>

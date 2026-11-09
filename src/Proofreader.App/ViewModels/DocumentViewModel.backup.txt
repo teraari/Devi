@@ -1,0 +1,51 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Proofreader.App.ViewModels;
+
+public class DocumentationSection
+{
+    public string Title { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+}
+
+public partial class DocumentationViewModel : ViewModelBase
+{
+    private readonly List<DocumentationSection> _allSections = new();
+    public ObservableCollection<DocumentationSection> FilteredSections { get; } = new();
+
+    [ObservableProperty] private DocumentationSection? _selectedSection;
+    [ObservableProperty] private string _searchText = string.Empty;
+
+    public DocumentationViewModel()
+    {
+        LoadDocumentation();
+        UpdateFilter();
+    }
+
+    partial void OnSearchTextChanged(string value) => UpdateFilter();
+
+    private void UpdateFilter()
+    {
+        FilteredSections.Clear();
+        var filtered = _allSections.Where(s => 
+            string.IsNullOrWhiteSpace(SearchText) || 
+            s.Title.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
+            s.Content.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+        foreach (var section in filtered) FilteredSections.Add(section);
+
+        if (SelectedSection == null && FilteredSections.Count > 0)
+            SelectedSection = FilteredSections[0];
+    }
+
+    private void LoadDocumentation()
+    {
+        _allSections.Add(new DocumentationSection { Category = "Начало работы", Title = "Что такое Proofreader", Content = "Proofreader — это локальный инструмент..." });
+        _allSections.Add(new DocumentationSection { Category = "Проверка текста", Title = "Запуск проверки", Content = "Нажмите кнопку 'Проверить' (F5)..." });
+    }
+}

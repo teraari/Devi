@@ -1,5 +1,11 @@
 using System;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
+using Proofreader.App.Controls;
 using Proofreader.App.ViewModels;
 using Proofreader.Core.Models;
 
@@ -19,18 +25,102 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel vm)
         {
             vm.ErrorSelected += OnErrorSelected;
+            vm.RequestShowAbout += OnRequestShowAbout;
+            vm.RequestShowDocumentation += OnRequestShowDocumentation;
+            vm.RequestShowShortcuts += OnRequestShowShortcuts;
         }
     }
 
     private void OnErrorSelected(SpellingError error)
     {
-        // В AvaloniaEdit выделение задается через длину, а не конечный индекс
-        EditorTextBox.SelectionStart = error.StartIndex;
-        EditorTextBox.SelectionLength = error.Length;
+        var editor = this.GetVisualDescendants().OfType<BindableTextEditor>().FirstOrDefault();
         
-        // Устанавливаем курсор в начало ошибки
-        EditorTextBox.CaretOffset = error.StartIndex;
-        
-        EditorTextBox.Focus();
+        if (editor != null)
+        {
+            editor.SelectionStart = error.StartIndex;
+            editor.SelectionLength = error.Length;
+            editor.CaretOffset = error.StartIndex;
+            editor.Focus(); 
+        }
+    }
+
+    private void OnRequestShowAbout()
+    {
+        var aboutWindow = new AboutWindow();
+        aboutWindow.ShowDialog(this);
+    }
+
+    private void OnRequestShowDocumentation()
+    {
+        var docWindow = new DocumentationWindow();
+        docWindow.ShowDialog(this);
+    }
+
+    private void OnRequestShowShortcuts()
+    {
+        var shortcutsWindow = new ShortcutsWindow();
+        shortcutsWindow.ShowDialog(this);
+    }
+
+    // =========================================================
+    // МЕТОДЫ ДЛЯ ПЕРЕИМЕНОВАНИЯ ДОКУМЕНТА
+    // =========================================================
+
+    // 1. Двойной клик по названию
+    private void OnFileNameDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is TextBlock tb && tb.DataContext is DocumentViewModel vm)
+        {
+            vm.IsEditing = true;
+        }
+    }
+
+    // 2. Клик по "Переименовать" в контекстном меню
+    private void OnRenameMenuItemClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem mi && mi.DataContext is DocumentViewModel vm)
+        {
+            vm.IsEditing = true;
+        }
+    }
+
+    // 3. Автоматический фокус на поле ввода при появлении
+    private void OnEditTextBoxLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            tb.Focus();
+            tb.SelectAll();
+        }
+    }
+
+    // 4. Завершение редактирования (кликнули в другое место)
+    private void OnFileNameEditLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb && tb.DataContext is DocumentViewModel vm)
+        {
+            vm.IsEditing = false;
+            
+            if (string.IsNullOrWhiteSpace(vm.FileName)) 
+                vm.FileName = "Новый документ";
+        }
+    }
+
+    // 5. Завершение редактирования (нажали Enter или Escape)
+    private void OnFileNameEditKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.Escape)
+        {
+            if (sender is TextBox tb && tb.DataContext is DocumentViewModel vm)
+            {
+                vm.IsEditing = false;
+                
+                if (string.IsNullOrWhiteSpace(vm.FileName)) 
+                    vm.FileName = "Новый документ";
+                    
+                this.Focus(); 
+                e.Handled = true;
+            }
+        }
     }
 }

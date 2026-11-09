@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 
@@ -11,8 +10,16 @@ public class SpellingError
     public int Length { get; set; }
     public List<string> Suggestions { get; set; } = new();
 
-    // НОВОЕ: Храним примененное исправление (null, если еще не исправлено)
     public string? AppliedSuggestion { get; set; }
+    public ErrorType ErrorType { get; set; } = ErrorType.Spelling;
 
-    public System.Windows.Input.ICommand? ApplySuggestionCommand { get; set; }
+    // НОВОЕ: Уровень уверенности
+    public ErrorConfidence Confidence { get; set; } = ErrorConfidence.Medium;
+
+    // НОВОЕ: Флаг, было ли это исправлено автоматически
+    public bool IsAutoFixed { get; set; } = false;
+
+    // Команды
+    public ICommand? ApplySuggestionCommand { get; set; }
+    public ICommand? AddToDictionaryCommand { get; set; }
 }

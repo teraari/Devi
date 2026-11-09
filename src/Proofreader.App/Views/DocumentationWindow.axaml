@@ -1,0 +1,123 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Proofreader.App.ViewModels"
+        x:Class="Proofreader.App.Views.DocumentationWindow"
+        x:DataType="vm:DocumentationViewModel"
+        Title="Devi - Документация"
+        Icon="/Assets/devi.ico"
+        Width="900"
+        Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="#CCCCCC">
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="#333333" />
+            <Setter Property="Foreground" Value="#CCCCCC" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="250,4,*">
+
+        <!-- Левая панель: поиск и список разделов -->
+        <Grid Grid.Column="0"
+              RowDefinitions="Auto,Auto,*"
+              Background="#252526">
+
+            <Border Grid.Row="0"
+                    BorderBrush="#3E3E42"
+                    BorderThickness="0,0,0,1"
+                    Padding="10,10,10,5">
+
+                <!-- ИСПРАВЛЕНО: PlaceholderText заменен на Watermark -->
+                <TextBox Text="{Binding SearchText, Mode=TwoWay}"
+                         Watermark="Поиск..."
+                         Background="#1E1E1E"
+                         Foreground="#CCCCCC"
+                         BorderBrush="#444444" />
+            </Border>
+            
+            <!-- Счетчик найденных статей -->
+            <TextBlock Grid.Row="1"
+                       Text="{Binding ResultText}"
+                       Foreground="#777777"
+                       FontSize="11"
+                       Margin="10,5,10,10" />
+
+            <ListBox Grid.Row="2"
+                     ItemsSource="{Binding FilteredSections}"
+                     SelectedItem="{Binding SelectedSection, Mode=TwoWay}">
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DocumentationSection">
+                        <StackPanel Margin="0,5">
+                            <TextBlock Text="{Binding Category}"
+                                       FontSize="10"
+                                       Foreground="#777777" />
+
+                            <TextBlock Text="{Binding Title}"
+                                       FontSize="12"
+                                       Foreground="#CCCCCC"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+            </ListBox>
+        </Grid>
+
+        <!-- Разделитель панелей -->
+        <GridSplitter Grid.Column="1"
+                      Background="#3E3E42"
+                      ResizeDirection="Columns" />
+
+        <!-- Правая панель: содержимое документации -->
+        <ScrollViewer Grid.Column="2"
+                      Padding="30">
+            
+            <!-- ОБЕРТКА: ScrollViewer может иметь только одного ребенка (Grid) -->
+            <Grid>
+                <!-- Сообщение "Ничего не найдено" -->
+                <TextBlock Text="По вашему запросу ничего не найдено."
+                           FontSize="16"
+                           Foreground="#777777"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding IsEmpty}" />
+
+                <!-- Содержимое статьи -->
+                <StackPanel Spacing="15"
+                            IsVisible="{Binding SelectedSection, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+                    <TextBlock Text="{Binding SelectedSection.Category}"
+                               FontSize="12"
+                               Foreground="#007ACC"
+                               FontWeight="Bold" />
+
+                    <TextBlock Text="{Binding SelectedSection.Title}"
+                               FontSize="24"
+                               Foreground="#FFFFFF"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap" />
+
+                    <Rectangle Height="1"
+                               Fill="#3E3E42"
+                               Margin="0,10" />
+
+                    <TextBlock Text="{Binding SelectedSection.Content}"
+                               FontSize="14"
+                               Foreground="#CCCCCC"
+                               TextWrapping="Wrap"
+                               LineHeight="22" />
+
+                </StackPanel>
+            </Grid>
+            
+        </ScrollViewer>
+
+    </Grid>
+</Window>
