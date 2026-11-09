@@ -16,7 +16,8 @@ Devi — настольное приложение для проверки, ис
 
 ## 📸 Скриншоты
 
-[Интерфейс Devi] <img width="1424" height="721" alt="screenshot_devi" src="https://github.com/user-attachments/assets/b59378aa-9368-4be4-9efe-4ee6be3e0dfb" />
+Интерфейс Devi 
+<img width="1424" height="721" alt="screenshot_devi" src="https://github.com/user-attachments/assets/b59378aa-9368-4be4-9efe-4ee6be3e0dfb" />
 ---
 
 ## ✨ Возможности
