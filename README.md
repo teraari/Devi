@@ -1,3 +1,4 @@
+
 # Devi
 
 ![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)
@@ -15,8 +16,7 @@ Devi — настольное приложение для проверки, ис
 
 ## 📸 Скриншоты
 
-[Интерфейс Devi](Assers\screenshot_devi.png)
-
+[Интерфейс Devi] <img width="1424" height="721" alt="screenshot_devi" src="https://github.com/user-attachments/assets/b59378aa-9368-4be4-9efe-4ee6be3e0dfb" />
 ---
 
 ## ✨ Возможности
