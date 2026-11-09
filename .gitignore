@@ -1,0 +1,14 @@
+# Игнорируем временные файлы сборки
+bin/
+obj/
+.vs/
+.idea/
+
+# Игнорируем тяжелую модель ИИ (4.6 ГБ)
+*.gguf
+src/Proofreader.App/bin/Release/net10.0/Dictionaries/saiga.gguf
+
+# Игнорируем локальные настройки
+appsettings.json
+
+*.zip

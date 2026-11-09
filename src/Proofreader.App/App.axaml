@@ -1,0 +1,24 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Proofreader.App.App"
+             xmlns:local="using:Proofreader.App"
+             xmlns:lucide="using:Lucide.Avalonia"
+             RequestedThemeVariant="Dark">
+    
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+    </Application.Styles>
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="BrushBackground" Color="#121212" />
+        <SolidColorBrush x:Key="BrushPanel" Color="#1E1E1E" />
+        <SolidColorBrush x:Key="BrushBorder" Color="#555555" />
+        <SolidColorBrush x:Key="BrushText" Color="#D4D4D4" />
+        <SolidColorBrush x:Key="BrushAccent" Color="#E06C75" />
+    </Application.Resources>
+</Application>

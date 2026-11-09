@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Proofreader.App.ViewModels"
+        x:Class="Proofreader.App.Views.ShortcutsWindow"
+        x:CompileBindings="False"
+        Icon="/Assets/devi.ico"
+        Title="Devi - Горячие клавиши"
+        Width="600" Height="700"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E" Foreground="#CCCCCC">
+    
+    <Grid RowDefinitions="Auto, *, Auto" Margin="15">
+        <TextBox Grid.Row="0" Text="{Binding SearchText, Mode=TwoWay}" Watermark="Поиск..." 
+                 Background="#252526" Foreground="#CCCCCC" BorderBrush="#444444" Margin="0,0,0,15"/>
+
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding FilteredShortcuts}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ShortcutItem">
+                        <Grid ColumnDefinitions="*, Auto" Margin="0,5">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Category}" FontSize="10" Foreground="#777777"/>
+                                <TextBlock Text="{Binding Action}" FontSize="13" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#333333" BorderBrush="#444444" BorderThickness="1" CornerRadius="3" Padding="8,4" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Key}" FontFamily="Consolas" FontSize="12" Foreground="#4CAF50" FontWeight="Bold"/>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <TextBlock Grid.Row="2" Text="Сочетания клавиш могут зависеть от платформы и текущего контекста приложения." 
+                   FontSize="11" Foreground="#777777" TextAlignment="Center" Margin="0,15,0,0"/>
+    </Grid>
+</Window>

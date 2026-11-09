@@ -1,0 +1,69 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Proofreader.Core.Interfaces;
+using Proofreader.Core.Models;
+using WeCantSpell.Hunspell;
+
+namespace Proofreader.Language;
+
+public class HunspellSpellchecker : ISpellchecker
+{
+    private readonly WordList _wordList;
+    private readonly IDictionaryService _customDictionary; // <-- ДОБАВЛЕНО
+
+    public HunspellSpellchecker(IDictionaryService customDictionary) // <-- Внедряем через DI
+    {
+        _customDictionary = customDictionary;
+        
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        var dicPath = Path.Combine(baseDir, "Dictionaries", "ru_RU.dic");
+
+        if (!File.Exists(dicPath))
+            throw new FileNotFoundException($"Словарь не найден по пути: {dicPath}");
+
+        _wordList = WordList.CreateFromFiles(dicPath);
+    }
+
+    public Task<IReadOnlyList<SpellingError>> CheckTextAsync(string text, CancellationToken cancellationToken = default)
+    {
+        return Task.Run<IReadOnlyList<SpellingError>>(() =>
+        {
+            var errors = new List<SpellingError>();
+            var wordRegex = new Regex(@"[а-яА-ЯёЁ]+", RegexOptions.Compiled);
+            
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var matches = wordRegex.Matches(text);
+            foreach (Match match in matches)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                var word = match.Value;
+                
+                // 1. Проверяем в пользовательском словаре
+                if (_customDictionary.IsWordKnown(word)) continue;
+
+                // 2. Проверяем в Hunspell
+                if (!_wordList.Check(word))
+                {
+                    var suggestions = _wordList.Suggest(word).Take(5).ToList();
+                    
+                    errors.Add(new SpellingError
+                    {
+                        Word = word,
+                        StartIndex = match.Index,
+                        Length = match.Length,
+                        Suggestions = suggestions
+                    });
+                }
+            }
+
+            return errors;
+        }, cancellationToken);
+    }
+}
